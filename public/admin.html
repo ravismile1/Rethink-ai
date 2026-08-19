@@ -1,0 +1,175 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RETHINK AI — Admin Command Center (Ravi Teja)</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+  <!-- 1. LOGIN SCREEN -->
+  <div class="admin-login-screen" id="adminLoginScreen">
+    <div class="login-card">
+      <img src="assets/rethink_logo.jpg" alt="Rethink AI" class="login-logo">
+      <h1 class="login-title">RETHINK ADMIN</h1>
+      <p class="login-subtitle">Private Command Center • Exclusively for Ravi Teja</p>
+
+      <form id="loginForm" onsubmit="handleAdminLogin(event)">
+        <div class="login-form-group">
+          <label class="login-label">Admin Email</label>
+          <input type="email" id="loginEmail" class="login-input" required value="ravismile135@gmail.com">
+        </div>
+
+        <div class="login-form-group">
+          <label class="login-label">Admin Password</label>
+          <input type="password" id="loginPassword" class="login-input" required placeholder="••••••••••••">
+        </div>
+
+        <div id="loginError" style="color:#FF6666; font-size:0.8rem; margin-bottom:12px; display:none;"></div>
+
+        <button type="submit" class="login-submit-btn">Authorize Access</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. AUTHENTICATED ADMIN DASHBOARD -->
+  <div class="admin-dashboard" id="adminDashboard" style="display:none;">
+    <!-- HEADER -->
+    <header class="admin-header">
+      <div class="admin-brand">
+        <img src="assets/rethink_logo.jpg" alt="Rethink Logo">
+        <div>
+          <span class="admin-title-text">RETHINK COMMAND CENTER</span>
+          <span class="admin-badge-pill">SUPER ADMIN: RAVI TEJA</span>
+        </div>
+      </div>
+
+      <div class="admin-header-actions">
+        <a href="index.html" class="back-to-chat-btn">← Back to Rethink Chat</a>
+        <button class="logout-btn" onclick="handleAdminLogout()">Logout</button>
+      </div>
+    </header>
+
+    <!-- DASHBOARD BODY -->
+    <main class="admin-body">
+      <!-- STATS OVERVIEW -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-title">Total Conversations</div>
+          <div class="stat-number cyan" id="statTotalConvos">0</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-title">Total Messages Logged</div>
+          <div class="stat-number lime" id="statTotalMessages">0</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-title">Distinct Friends / Users</div>
+          <div class="stat-number" id="statTotalUsers">0</div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-title">Active AI Engine</div>
+          <div class="stat-number cyan" style="font-size:1.4rem;" id="statAiEngine">Gemini 3.6 Flash</div>
+        </div>
+      </div>
+
+      <!-- NAVIGATION TABS -->
+      <div class="admin-tabs">
+        <button class="admin-tab-btn active" onclick="switchTab('tabConversations')">💬 Live User Conversations</button>
+        <button class="admin-tab-btn" onclick="switchTab('tabSettings')">⚙️ AI Prompts & API Keys</button>
+        <button class="admin-tab-btn" onclick="switchTab('tabExport')">📥 Data Export & Backup</button>
+      </div>
+
+      <!-- TAB 1: CONVERSATION INSPECTOR -->
+      <div class="tab-pane active" id="tabConversations">
+        <div class="inspector-container">
+          <!-- Left: List of all user sessions -->
+          <div class="conversations-sidebar">
+            <div class="inspector-search-bar">
+              <input type="text" id="convoSearchInput" class="inspector-search-input" placeholder="Search by name, message, IP..." oninput="handleSearchConvos()">
+              <button class="back-to-chat-btn" onclick="loadAllConversations()" style="padding:6px 10px;">↻ Refresh</button>
+            </div>
+            <div class="conversations-list-items" id="adminConvoList">
+              <!-- Dynamically populated conversations -->
+            </div>
+          </div>
+
+          <!-- Right: Detailed Message Viewer for selected session -->
+          <div class="conversation-viewer-box">
+            <div class="viewer-header">
+              <div>
+                <div class="viewer-title" id="viewerTitle">Select a conversation to inspect</div>
+                <div class="viewer-user-details" id="viewerDetails">Every query sent by your friends is permanently recorded here.</div>
+              </div>
+              <button class="logout-btn" id="deleteConvoBtn" style="display:none;" onclick="deleteSelectedConvo()">Delete Session</button>
+            </div>
+
+            <div class="viewer-messages-body" id="viewerMessages">
+              <div style="color:var(--text-secondary); text-align:center; margin:auto;">
+                👈 Click on any conversation on the left to see everything that was chatted.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: SETTINGS & PROMPTS -->
+      <div class="tab-pane" id="tabSettings">
+        <div class="settings-container">
+          <h2 style="font-family:'Space Grotesk'; margin-bottom:20px; color:#FFF;">AI Configuration & Identity</h2>
+
+          <form id="settingsForm" onsubmit="handleSaveSettings(event)">
+            <div class="settings-group">
+              <label class="settings-label">System Persona & Identity Prompt</label>
+              <div class="settings-help">Defines the core personality and enforces Ravi Teja as the creator for all users.</div>
+              <textarea id="settingSystemPrompt" class="settings-textarea"></textarea>
+            </div>
+
+            <div class="settings-group">
+              <label class="settings-label">Google Gemini API Key</label>
+              <div class="settings-help">Active key used for lightning-fast Gemini 3.6 Flash responses.</div>
+              <input type="text" id="settingGeminiKey" class="settings-input">
+            </div>
+
+            <div class="settings-group">
+              <label class="settings-label">OpenAI API Key (Service Account or Project Key)</label>
+              <div class="settings-help">Used for GPT-4o / GPT-4o-mini completion.</div>
+              <input type="text" id="settingOpenAIKey" class="settings-input">
+            </div>
+
+            <div class="settings-group">
+              <label class="settings-label">Ollama Local Endpoint</label>
+              <div class="settings-help">Default: http://localhost:11434 (Used if local Ollama models are run).</div>
+              <input type="text" id="settingOllamaEndpoint" class="settings-input">
+            </div>
+
+            <div id="settingsAlert" style="margin-bottom:15px; font-size:0.85rem; display:none;"></div>
+
+            <button type="submit" class="save-settings-btn">Save Changes</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- TAB 3: DATA EXPORT -->
+      <div class="tab-pane" id="tabExport">
+        <div class="settings-container">
+          <h2 style="font-family:'Space Grotesk'; margin-bottom:20px; color:#FFF;">Database Backup & Log Download</h2>
+          <p style="color:var(--text-secondary); margin-bottom:20px; font-size:0.9rem;">
+            All chat logs from every user and friend are securely saved in your local database on this laptop. You can download the complete archive anytime.
+          </p>
+          <div style="display:flex; gap:16px;">
+            <button class="save-settings-btn" onclick="exportFullDatabaseJSON()">Download Full JSON Database</button>
+            <button class="back-to-chat-btn" onclick="exportConversationsCSV()" style="padding:12px 20px; font-size:0.95rem;">Download Conversations CSV</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
