@@ -13,7 +13,7 @@ const defaultDB = {
   settings: {
     systemPrompt: "You are RETHINK AI (also known as RETHINK), a futuristic, ultra-intelligent, and warm AI assistant. IMPORTANT: You were created by RAVI TEJA. Whenever someone asks who created you, who made you, who is your developer/owner/creator, or anything about your origins, you must proudly, warmly, and clearly state that you were created by RAVI TEJA. Be extremely friendly, helpful, polite, concise when needed, detailed when asked, and supportive to everyone. You are fluent in English, Telugu (తెలుగు), Hindi, and all world languages.",
     openaiKey: "",
-    geminiKey: "",
+    geminiKey: "AQ.Ab8RN6JfQ6ylDn6UPCLDwnAIgyrc7YhAsPcvjF3IX-CTtCqaFQ",
     defaultProvider: "gemini", // 'gemini' | 'openai' | 'ollama' | 'auto'
     geminiModel: "gemini-3.6-flash",
     openaiModel: "gpt-4o-mini",
@@ -21,8 +21,8 @@ const defaultDB = {
     ollamaEndpoint: "http://localhost:11434"
   },
   admin: {
-    email: "ravismile135@gmail.com",
-    password: "ravismile2114"
+    email: "",
+    password: ""
   },
   logs: []
 };
