@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RETHINK AI — Think Beyond. Create Future.</title>
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="ambient-glow-cyan"></div>
+  <div class="ambient-glow-lime"></div>
+
+  <div id="app-root">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand" onclick="startNewChat()">
+          <img src="assets/rethink_logo.jpg" alt="Rethink Logo" class="sidebar-logo-img">
+          <span class="brand-text">RETHINK</span>
+        </div>
+      </div>
+
+      <button class="new-chat-btn" onclick="startNewChat()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        New Rethink Chat
+      </button>
+
+      <div class="sidebar-section-title">Recent Conversations</div>
+      <div class="chat-history-list" id="chatHistoryList">
+        <!-- Dynamic History Items -->
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="user-badge">
+          <div class="user-avatar-circle" id="userAvatarChar">U</div>
+          <div class="user-info">
+            <input type="text" id="userNameInput" class="user-name-input" value="Friend of Ravi" title="Click to change your display name">
+            <div class="user-subtext">Session Active</div>
+          </div>
+        </div>
+
+        <a href="admin.html" class="admin-link-btn" title="Admin access for Ravi Teja">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+          </svg>
+          Admin Portal (Ravi Only)
+        </a>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- TOP NAVBAR -->
+      <header class="top-navbar">
+        <div class="nav-left">
+          <button class="sidebar-toggle-btn" id="sidebarToggle" title="Toggle Sidebar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          <div class="nav-creator-badge">
+            <span>Creator:</span>
+            <span class="creator-highlight">RAVI TEJA</span>
+          </div>
+        </div>
+
+        <div class="nav-right">
+          <div class="model-selector-wrap">
+            <div class="model-status-dot"></div>
+            <select id="modelSelect" class="model-select">
+              <option value="auto" selected>⚡ Groq GPT-OSS 120B (Ultra-Fast)</option>
+              <option value="openai/gpt-oss-120b">⚡ Groq GPT-OSS 120B (High IQ)</option>
+              <option value="openai/gpt-oss-20b">⚡ Groq GPT-OSS 20B (Instant Speed)</option>
+              <option value="groq/compound">🧠 Groq Compound (Deep Reasoning)</option>
+              <option value="qwen/qwen3.6-27b">✦ Groq Qwen 3.6 27B</option>
+              <option value="ollama">⌁ Local Ollama (Offline PC)</option>
+            </select>
+          </div>
+
+          <button class="sidebar-toggle-btn" id="exportBtn" title="Export Current Chat" onclick="exportCurrentChat()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- HERO OPENING SCREEN -->
+      <section class="hero-container" id="heroContainer">
+        <div class="hero-logo-wrapper">
+          <div class="hero-glow-ring"></div>
+          <img src="assets/rethink_logo.jpg" alt="Rethink AI Logo" class="hero-logo-img">
+        </div>
+        <h1 class="hero-title">RETHINK</h1>
+        <p class="hero-tagline">Think differently. Ask anything.</p>
+        <p class="hero-subtag">THINK BEYOND. CREATE FUTURE.</p>
+
+        <!-- 4 SUGGESTION CARDS -->
+        <div class="suggestion-grid">
+          <div class="suggestion-card" onclick="usePromptSuggestion('✦ Explain something: Explain Quantum Computing in simple terms with an example.')">
+            <span class="card-icon">✦</span>
+            <div class="card-title">Explain something</div>
+            <div class="card-desc">Quantum computing, black holes, or complex concepts simply</div>
+          </div>
+
+          <div class="suggestion-card" onclick="usePromptSuggestion('⌁ Create an idea: Give me 5 innovative AI startup ideas for 2026.')">
+            <span class="card-icon">⌁</span>
+            <div class="card-title">Create an idea</div>
+            <div class="card-desc">Viral startup concepts, catchy brand names, or scripts</div>
+          </div>
+
+          <div class="suggestion-card" onclick="usePromptSuggestion('⚡ Solve a problem: Write an optimized JavaScript function to debounce search inputs with cancelation.')">
+            <span class="card-icon">⚡</span>
+            <div class="card-title">Solve a problem</div>
+            <div class="card-desc">Debug code, design algorithms, or solve math & logic</div>
+          </div>
+
+          <div class="suggestion-card" onclick="usePromptSuggestion('◈ Analyze something: Analyze the impact of generative AI on software development in the next 5 years.')">
+            <span class="card-icon">◈</span>
+            <div class="card-title">Analyze something</div>
+            <div class="card-desc">Market trends, code architecture, or career roadmaps</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CHAT MESSAGES STREAM -->
+      <div class="chat-messages-container" id="chatMessagesContainer" style="display: none;">
+        <!-- Dynamic chat bubbles will be inserted here -->
+      </div>
+
+      <!-- INPUT BOX AREA -->
+      <div class="chat-input-wrapper">
+        <div class="input-bar-container">
+          <textarea id="chatInput" class="chat-textarea" placeholder="Ask Rethink anything..." rows="1"></textarea>
+          <div class="input-actions">
+            <button class="voice-btn" id="voiceBtn" title="Voice Input (Speech-to-Text)" onclick="toggleVoiceInput()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+            </button>
+            <button class="send-btn" id="sendBtn" title="Send message" onclick="sendMessage()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5"></line>
+                <polyline points="5 12 12 5 19 12"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="input-footer-note">
+          RETHINK AI is crafted for speed & intelligence. Built by <span>RAVI TEJA</span>.
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
