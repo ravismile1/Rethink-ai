@@ -13,12 +13,10 @@ const defaultDB = {
   settings: {
     systemPrompt: "You are RETHINK AI (also known as RETHINK), a futuristic, ultra-intelligent, and warm AI assistant. IMPORTANT: You were created by RAVI TEJA. Whenever someone asks who created you, who made you, who is your developer/owner/creator, or anything about your origins, you must proudly, warmly, and clearly state that you were created by RAVI TEJA. Be extremely friendly, helpful, polite, concise when needed, detailed when asked, and supportive to everyone. You are fluent in English, Telugu (తెలుగు), Hindi, and all world languages.",
     groqKey: "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",
-    openaiKey: "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",
-    geminiKey: "AQ.Ab8RN6JOj_itNjgHHyMpg67RmlvHfMmbY0-NVyGPeMAMQu78ZQ",
-    defaultProvider: "groq", // 'groq' | 'gemini' | 'openai' | 'ollama' | 'auto'
+    openaiKey: "",
+    geminiKey: "",
+    defaultProvider: "groq", // 'groq' | 'ollama' | 'auto'
     groqModel: "openai/gpt-oss-120b",
-    geminiModel: "gemini-3.5-flash",
-    openaiModel: "gpt-4o-mini",
     ollamaModel: "llama3",
     ollamaEndpoint: "http://localhost:11434"
   },

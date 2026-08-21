@@ -1,4 +1,4 @@
-﻿const express = require('express');
+const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const jwt = require('jsonwebtoken');
@@ -68,8 +68,7 @@ app.get('/api/status', async (req, res) => {
     version: '1.0.0',
     creator: 'RAVI TEJA',
     providers: {
-      gemini: { configured: !!settings.geminiKey, defaultModel: settings.geminiModel },
-      openai: { configured: !!settings.openaiKey, defaultModel: settings.openaiModel },
+      groq: { configured: !!settings.groqKey, defaultModel: settings.groqModel, active: true },
       ollama: { online: ollamaOnline, models: ollamaModels }
     }
   });

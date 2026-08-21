@@ -1,71 +1,20 @@
-﻿const Store = require('./store');
+const Store = require('./store');
 
-async function callGemini(messages, settings, modelOverride) {
-  const model = modelOverride || settings.geminiModel || 'gemini-3.6-flash';
-  const apiKey = settings.geminiKey;
-  
-  if (!apiKey) throw new Error('Gemini API key not configured');
+// Primary Groq API caller
+async function callGroq(messages, settings, modelOverride) {
+  const model = modelOverride || settings.groqModel || 'openai/gpt-oss-120b';
+  const apiKey = settings.groqKey;
 
-  // Convert messages to Gemini format
-  const systemInstructionText = settings.systemPrompt;
-  const contents = [];
+  if (!apiKey) throw new Error('Groq API key not configured in settings');
 
-  messages.forEach(m => {
-    if (m.role === 'system') return;
-    contents.push({
-      role: m.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: m.content }]
-    });
-  });
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-  const payload = {
-    contents,
-    systemInstruction: {
-      parts: [{ text: systemInstructionText }]
-    },
-    generationConfig: {
-      temperature: 0.7,
-      topP: 0.95,
-      maxOutputTokens: 2048
-    }
-  };
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
-
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Gemini Error (${res.status}): ${errText}`);
-  }
-
-  const data = await res.json();
-  const answer = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!answer) throw new Error('No answer returned from Gemini');
-
-  return {
-    content: answer,
-    model: `Gemini (${model})`,
-    provider: 'gemini',
-    tokens: data.usageMetadata?.totalTokenCount || 0
-  };
-}
-
-async function callOpenAI(messages, settings, modelOverride) {
-  const model = modelOverride || settings.openaiModel || 'gpt-4o-mini';
-  const apiKey = settings.openaiKey;
-
-  if (!apiKey) throw new Error('OpenAI API key not configured');
+  const systemInstruction = settings.systemPrompt || "You are RETHINK AI, created by RAVI TEJA. Be helpful, friendly, and smart.";
 
   const fullMessages = [
-    { role: 'system', content: settings.systemPrompt },
+    { role: 'system', content: systemInstruction },
     ...messages.filter(m => m.role !== 'system')
   ];
 
-  const res = await fetch('https://api.openai.com/v1/chat/completions', {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${apiKey}`,
@@ -76,23 +25,27 @@ async function callOpenAI(messages, settings, modelOverride) {
       messages: fullMessages,
       temperature: 0.7,
       max_tokens: 2048
-    })
+    }),
+    signal: AbortSignal.timeout(15000)
   });
 
   if (!res.ok) {
     const errData = await res.json().catch(() => ({}));
-    throw new Error(`OpenAI Error (${res.status}): ${errData.error?.message || res.statusText}`);
+    throw new Error(`Groq Error (${res.status}): ${errData.error?.message || res.statusText}`);
   }
 
   const data = await res.json();
+  const rawContent = data.choices?.[0]?.message?.content || '';
+
   return {
-    content: data.choices[0].message.content,
-    model: `OpenAI (${model})`,
-    provider: 'openai',
+    content: rawContent,
+    model: `Groq (${model})`,
+    provider: 'groq',
     tokens: data.usage?.total_tokens || 0
   };
 }
 
+// Local Ollama caller (offline fallback)
 async function callOllama(messages, settings, modelOverride) {
   const endpoint = settings.ollamaEndpoint || 'http://localhost:11434';
   const model = modelOverride || settings.ollamaModel || 'llama3';
@@ -109,83 +62,89 @@ async function callOllama(messages, settings, modelOverride) {
       model,
       messages: fullMessages,
       stream: false
-    })
+    }),
+    signal: AbortSignal.timeout(4000)
   });
 
   if (!res.ok) {
-    throw new Error(`Ollama Error (${res.status}): ${res.statusText}`);
+    const errText = await res.text().catch(() => '');
+    throw new Error(`Ollama Error (${res.status}): ${errText || res.statusText}`);
   }
 
   const data = await res.json();
+  if (!data.message?.content) {
+    throw new Error('Ollama model returned empty response');
+  }
+
   return {
-    content: data.message?.content || 'No response from local Ollama model',
+    content: data.message.content,
     model: `Ollama (${model})`,
     provider: 'ollama',
     tokens: 0
   };
 }
 
-function generateSmartFallback(userQuery) {
-  const queryLower = userQuery.toLowerCase();
-  
-  if (queryLower.includes('who created you') || queryLower.includes('who are you') || queryLower.includes('creator') || queryLower.includes('owner') || queryLower.includes('developer') || queryLower.includes('evaru chesaru') || queryLower.includes('evaru create')) {
-    return "I am **RETHINK AI**, a futuristic, ultra-intelligent AI assistant designed to think differently and create the future! 🚀\n\nI was proudly created by **RAVI TEJA**.\n\nనేను **రవి తేజ** గారిచే రూపొందించబడిన **రీథింక్ AI (RETHINK AI)** ని! మీకు ఏ విధంగా సహాయం చేయగలను?";
-  }
-
-  return `Hello! I am **RETHINK AI**, created by **RAVI TEJA**! 🚀\n\nI am ready to help you with coding, ideas, analysis, problem-solving, and answering any questions you or your friends have! Ask me anything!`;
-}
-
+// Master Chat Completion Router (Groq-Powered)
 async function generateChatCompletion(messages, requestedProvider = 'auto', requestedModel = null) {
   const settings = Store.getSettings();
   let provider = requestedProvider || settings.defaultProvider || 'auto';
-  
-  const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')?.content || '';
 
-  // Order of attempts based on preference
-  let attempts = [];
-  if (provider === 'gemini') {
-    attempts = ['gemini', 'openai', 'ollama'];
-  } else if (provider === 'openai') {
-    attempts = ['openai', 'gemini', 'ollama'];
-  } else if (provider === 'ollama') {
-    attempts = ['ollama', 'gemini', 'openai'];
-  } else {
-    // Auto mode: default to gemini since its key is active, then openai, then ollama
-    attempts = ['gemini', 'openai', 'ollama'];
-  }
+  // Groq models to try in sequence for 100% reliability
+  const groqCandidateModels = [
+    requestedModel,
+    settings.groqModel,
+    'openai/gpt-oss-120b',
+    'openai/gpt-oss-20b',
+    'groq/compound',
+    'qwen/qwen3.6-27b'
+  ].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i);
 
-  let lastError = null;
+  let errors = [];
 
-  for (const p of attempts) {
+  // If specifically requested Ollama, try Ollama first
+  if (provider === 'ollama') {
     try {
-      if (p === 'gemini' && settings.geminiKey) {
-        return await callGemini(messages, settings, requestedModel);
-      }
-      if (p === 'openai' && settings.openaiKey) {
-        return await callOpenAI(messages, settings, requestedModel);
-      }
-      if (p === 'ollama') {
-        return await callOllama(messages, settings, requestedModel);
-      }
+      return await callOllama(messages, settings, requestedModel);
     } catch (err) {
-      console.warn(`Provider ${p} failed:`, err.message);
-      lastError = err;
+      console.warn('[AI Router] Ollama unavailable, falling back to Groq:', err.message);
+      errors.push(`Ollama: ${err.message}`);
     }
   }
 
-  // If all providers fail, use our smart fallback
+  // Primary: Execute via Groq with candidate model fallback
+  if (settings.groqKey) {
+    for (const modelCandidate of groqCandidateModels) {
+      try {
+        return await callGroq(messages, settings, modelCandidate);
+      } catch (err) {
+        console.warn(`[AI Router] Groq model ${modelCandidate} failed:`, err.message);
+        errors.push(`Groq (${modelCandidate}): ${err.message}`);
+      }
+    }
+  } else {
+    errors.push('Groq: API key is not configured in settings');
+  }
+
+  // Secondary local fallback if Groq was unreachable
+  if (provider !== 'ollama') {
+    try {
+      return await callOllama(messages, settings, requestedModel);
+    } catch (err) {
+      // Ollama silent catch
+    }
+  }
+
+  // Diagnostic feedback if completely unreachable
   return {
-    content: generateSmartFallback(lastUserMsg),
-    model: 'RETHINK Core Engine',
-    provider: 'fallback',
-    tokens: 0,
-    note: lastError ? `Note: AI Fallback activated (${lastError.message})` : null
+    content: `⚠️ **Unable to reach Groq AI Service.**\n\n**Reason:**\n${errors.map(e => `• ${e}`).join('\n')}\n\n*Please ensure your Groq API key is valid in [Admin Settings](/admin.html).*`,
+    model: 'Connection Diagnostics',
+    provider: 'error',
+    tokens: 0
   };
 }
 
 module.exports = {
   generateChatCompletion,
-  callGemini,
-  callOpenAI,
+  callGroq,
   callOllama
 };
