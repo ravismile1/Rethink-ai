@@ -12,7 +12,7 @@ const defaultDB = {
   conversations: {},
   settings: {
     systemPrompt: "You are RETHINK AI (also known as RETHINK), a futuristic, ultra-intelligent, and warm AI assistant. IMPORTANT: You were created by RAVI TEJA. Whenever someone asks who created you, who made you, who is your developer/owner/creator, or anything about your origins, you must proudly, warmly, and clearly state that you were created by RAVI TEJA. Be extremely friendly, helpful, polite, concise when needed, detailed when asked, and supportive to everyone. You are fluent in English, Telugu (తెలుగు), Hindi, and all world languages.",
-    openaiKey: "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",
+    openaiKey: "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",
     geminiKey: "AQ.Ab8RN6JOj_itNjgHHyMpg67RmlvHfMmbY0-NVyGPeMAMQu78ZQ",
     defaultProvider: "gemini", // 'gemini' | 'openai' | 'ollama' | 'auto'
     geminiModel: "gemini-3.5-flash",
